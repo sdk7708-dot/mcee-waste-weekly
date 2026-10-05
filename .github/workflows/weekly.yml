@@ -1,0 +1,55 @@
+name: mcee-waste-weekly
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"   # 매주 월요일 00:00 UTC = 09:00 KST
+  workflow_dispatch:       # Actions 탭에서 수동 실행
+
+permissions:
+  contents: write          # seen.json / last_run.json 갱신 커밋용
+
+concurrency:
+  group: mcee-waste-weekly
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Seoul
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Collect and mail
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python mcee_waste_weekly.py --mail-to "$MAIL_TO"
+
+      - name: Save state (seen.json, last_run.json)
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git add output/seen.json output/last_run.json
+          git diff --cached --quiet || git commit -m "state: $(date +%F)"
+          git push
+
+      - name: Upload Excel and attachments
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcee-waste-${{ github.run_number }}
+          path: output/20*/
+          retention-days: 90
+          if-no-files-found: ignore

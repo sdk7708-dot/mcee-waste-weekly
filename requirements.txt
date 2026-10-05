@@ -1,0 +1,5 @@
+requests>=2.31
+beautifulsoup4>=4.12
+openpyxl>=3.1
+pypdf>=4.0        # 선택: 본문이 짧은 보도자료의 PDF 첨부에서 요약용 텍스트 추출
+anthropic>=0.40   # 선택: --llm 옵션(Claude 요약)을 쓸 때만 필요
