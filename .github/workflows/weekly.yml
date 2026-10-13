@@ -34,10 +34,18 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
-        run: python mcee_waste_weekly.py --mail-to "$MAIL_TO"
+        run: |
+          # 비어 있는 시크릿이면 스크립트가 메일을 조용히 건너뛰므로, 여기서 실패로 처리한다
+          for v in MAIL_TO SMTP_USER SMTP_PASSWORD; do
+            if [ -z "${!v}" ]; then
+              echo "::error::시크릿 $v 이(가) 비어 있습니다. Settings > Secrets and variables > Actions 에서 설정하세요."
+              exit 1
+            fi
+          done
+          python mcee_waste_weekly.py --mail-to "$MAIL_TO"
 
       - name: Save state (seen.json, last_run.json)
-        if: always()
+        if: success()   # 메일 발송이 실패하면 저장하지 않아 다음 실행이 같은 기간을 다시 보낸다
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
