@@ -34,6 +34,9 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: "465"
+          SMTP_SECURITY: ssl   # STARTTLS(587)는 러너에서 연결이 끊긴 적이 있어 SSL 465 사용
         run: |
           # 비어 있는 시크릿이면 스크립트가 메일을 조용히 건너뛰므로, 여기서 실패로 처리한다
           for v in MAIL_TO SMTP_USER SMTP_PASSWORD; do
