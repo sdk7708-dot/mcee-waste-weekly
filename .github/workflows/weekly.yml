@@ -61,3 +61,25 @@ jobs:
           path: output/20*/
           retention-days: 90
           if-no-files-found: ignore
+
+      - name: Upload to Google Drive
+        if: always()
+        env:
+          RCLONE_CONFIG_GDRIVE_TYPE: drive
+          RCLONE_CONFIG_GDRIVE_SCOPE: drive
+          RCLONE_CONFIG_GDRIVE_TOKEN: ${{ secrets.GDRIVE_RCLONE_TOKEN }}
+          RCLONE_CONFIG_GDRIVE_ROOT_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          if [ -z "$RCLONE_CONFIG_GDRIVE_TOKEN" ] || [ -z "$RCLONE_CONFIG_GDRIVE_ROOT_FOLDER_ID" ]; then
+            echo "::notice::GDRIVE_RCLONE_TOKEN / GDRIVE_FOLDER_ID 시크릿이 없어 Drive 업로드를 건너뜁니다."
+            exit 0
+          fi
+          if ! ls -d output/20*/ >/dev/null 2>&1; then
+            echo "::notice::업로드할 결과 폴더가 없습니다."
+            exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rclone
+          for d in output/20*/; do
+            rclone copy "$d" "gdrive:$(basename "$d")" --transfers 4 -v
+          done
