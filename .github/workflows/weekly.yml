@@ -1,8 +1,8 @@
 name: mcee-waste-weekly
 
 on:
-  schedule:
-    - cron: "0 0 * * 1"   # 매주 월요일 00:00 UTC = 09:00 KST
+  # 자동 실행(schedule)은 중지: Gmail이 GitHub 서버의 SMTP 접속을 끊어 메일 발송이 불가능했다.
+  # 현재는 로컬 PC의 Claude 예약 작업이 수집 -> 구글 드라이브 저장 -> 알림을 맡는다.
   workflow_dispatch:       # Actions 탭에서 수동 실행
 
 permissions:
